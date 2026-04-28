@@ -7,7 +7,7 @@ Uso:
     python3 generate_password_hash.py "minha_senha"
 
 Exemplo:
-    $ python3 generate_password_hash.py "Toner@2024Segura"
+    $ python3 generate_password_hash.py "Toner@2026Segura"
     Hash bcrypt:
     $2b$12$YourHashHereFullHash...
     

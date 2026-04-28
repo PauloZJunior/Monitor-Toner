@@ -7,3 +7,9 @@ __pycache__/
 mnt/
 *.migrado
 impressoras.json
+.env
+README.SERANCA.md
+SECURITY_UPDATES.md
+MUDANCAS_SEGURANCA_VISUAL.md
+ANALISE_VULNERABILIDADES.md
+index_old.html

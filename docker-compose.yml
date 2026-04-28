@@ -16,6 +16,8 @@ services:
 
   monitor-toner:
     build: .
+    env_file:
+      - .env
     container_name: monitor-toner
     restart: unless-stopped
     depends_on:
@@ -27,7 +29,7 @@ services:
       - TZ=America/Sao_Paulo
       # ⚠️ OBRIGATÓRIO: Definir senha admin com hash bcrypt
       # Gere com: python3 -c "import bcrypt; print(bcrypt.hashpw(b'SENHA_SEGURA', bcrypt.gensalt(rounds=12)).decode())"
-      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH:?Erro: ADMIN_PASSWORD_HASH não definido}
+      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
       # URL de conexão com Redis (compartilhada com app)
       - REDIS_URL=redis://redis:6379/0
     ports:

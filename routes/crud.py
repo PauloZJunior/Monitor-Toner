@@ -30,7 +30,7 @@ def _validar_ip(ip_str: str) -> bool:
     try:
         addr = ipaddress.IPv4Address(ip_str)
         # Rejeita broadcast, network, multicast
-        if addr.is_network or addr.is_broadcast or addr.is_multicast:
+        if addr.is_reserved or addr.is_loopback or addr.is_multicast or addr.is_unspecified:
             return False
         return True
     except (ipaddress.AddressValueError, ValueError):

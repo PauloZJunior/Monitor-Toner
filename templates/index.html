@@ -20,11 +20,11 @@
 <header>
   <!-- ESQUERDA: Despertar + Atualizar + Exportar -->
   <div class="header-left">
-    <button class="btn btn-warning" id="btnWake" onclick="despertarTodas()">
+    <button class="btn btn-warning" id="btnWake">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
       <span>Despertar</span>
     </button>
-    <button class="btn btn-primary" id="btnRefresh" onclick="carregarDados()">
+    <button class="btn btn-primary" id="btnRefresh">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
       <span>Atualizar</span>
     </button>
@@ -47,17 +47,17 @@
     <div class="auth-badge" id="authBadge">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       <span>Admin</span>
-      <button class="logout-btn" onclick="fazerLogout()">sair</button>
+      <button class="logout-btn" id="btnLogout">sair</button>
     </div>
-    <button class="btn btn-ghost" onclick="abrirNotificacoes()" title="Configurar Notificações">
+    <button class="btn btn-ghost" id="btnNotificacoes" title="Configurar Notificações">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
       <span class="notif-dot-wrap"><span class="btn-notif-lbl">Alertas</span></span>
     </button>
-    <button class="btn btn-ghost" onclick="abrirGerenciador()">
+    <button class="btn btn-ghost" id="btnGerenciar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
       <span>Gerenciar</span>
     </button>
-    <button class="btn btn-icon btn-ghost" onclick="alternarTema()" title="Alternar tema">
+    <button class="btn btn-icon btn-ghost" id="btnTema" title="Alternar tema">
       <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
       <svg class="icon-sun" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     </button>
@@ -87,7 +87,7 @@
 <!-- TOOLBAR -->
 <div class="toolbar">
   <span class="toolbar-lbl">Status:</span>
-  <div class="sel-wrap"><select class="sel" id="selStatus" onchange="filtrarStatus(this.value)">
+  <div class="sel-wrap"><select class="sel" id="selStatus">
     <option value="todos">Todas</option>
     <option value="critico">🔴 Crítico</option>
     <option value="baixo">🟠 Baixo</option>
@@ -96,11 +96,11 @@
     <option value="offline">⚫ Offline</option>
   </select></div>
   <span class="toolbar-lbl">Empresa:</span>
-  <div class="sel-wrap"><select class="sel" id="selEmpresa" onchange="filtrarEmpresa(this.value||null)">
+  <div class="sel-wrap"><select class="sel" id="selEmpresa">
     <option value="">Todas</option>
   </select></div>
   <span class="toolbar-lbl">Tipo:</span>
-  <div class="sel-wrap"><select class="sel" id="selTipo" onchange="filtrarTipo(this.value||null)">
+  <div class="sel-wrap"><select class="sel" id="selTipo">
     <option value="">Todos</option>
     <option value="toner">🖨️ Toner/Tinta</option>
     <option value="etiqueta">🏷️ Etiqueta</option>
@@ -116,7 +116,7 @@
 
 <!-- WAKE TOAST -->
 <div class="wake-toast hidden" id="wakeToast">
-  <button class="wt-close" onclick="document.getElementById('wakeToast').classList.add('hidden')">×</button>
+  <button class="wt-close" id="btnWakeToastClose">×</button>
   <div class="wt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg><span id="wtTitle">Acordando...</span></div>
   <div class="wt-row"><span>Alcançadas</span><span id="wtAcordaram">—</span></div>
   <div class="wt-row"><span>Sem resposta</span><span id="wtFalhas">—</span></div>
@@ -125,17 +125,17 @@
 </div>
 
 <!-- ═══════════════════ MODAL GERENCIADOR ═══════════════════ -->
-<div class="modal-backdrop hidden" id="modalBackdrop" onclick="fecharSeClicouFora(event)">
+<div class="modal-backdrop hidden" id="modalBackdrop">
   <div class="modal">
     <div class="modal-header">
       <span class="modal-title" id="modalTitle">Gerenciar Impressoras</span>
-      <button class="modal-close" onclick="fecharModal()">×</button>
+      <button class="modal-close" id="btnFecharModal">×</button>
     </div>
     <div class="modal-body">
       <!-- TABS -->
       <div class="modal-tabs">
-        <button class="modal-tab active" onclick="mudarTab('lista')">📋 Lista</button>
-        <button class="modal-tab" onclick="mudarTab('form')">➕ Nova Impressora</button>
+        <button class="modal-tab active" id="tabBtnLista" data-tab="lista">📋 Lista</button>
+        <button class="modal-tab" id="tabBtnForm" data-tab="form">➕ Nova Impressora</button>
       </div>
 
       <!-- ALERTA -->
@@ -200,8 +200,8 @@
           </div>
         </div>
         <div class="form-actions">
-          <button class="btn btn-ghost" onclick="cancelarForm()">Cancelar</button>
-          <button class="btn btn-primary" id="btnSalvar" onclick="salvarImpressora()">
+          <button class="btn btn-ghost" id="btnCancelarForm">Cancelar</button>
+          <button class="btn btn-primary" id="btnSalvar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             Salvar
           </button>
@@ -218,12 +218,11 @@
     <div class="confirm-title" id="confirmTitle">Confirmar exclusão</div>
     <div class="confirm-msg" id="confirmMsg">Deseja remover esta impressora?</div>
     <div class="confirm-actions">
-      <button class="btn btn-ghost" onclick="fecharConfirm()">Cancelar</button>
+      <button class="btn btn-ghost" id="btnFecharConfirm">Cancelar</button>
       <button class="btn btn-danger" id="btnConfirmOk">Excluir</button>
     </div>
   </div>
 </div>
-
 
 <!-- ═══════════════════ MODAL DE SENHA ═══════════════════ -->
 <div class="auth-modal hidden" id="authModal">
@@ -233,9 +232,8 @@
     <div class="auth-sub">Digite a senha de administrador<br>para gerenciar as impressoras.</div>
     <div class="auth-input-wrap">
       <input class="auth-input" type="password" id="authSenha"
-             placeholder="Senha" autocomplete="current-password"
-             onkeydown="if(event.key==='Enter') confirmarSenha()">
-      <button class="auth-toggle" onclick="toggleSenha()" tabindex="-1" id="authToggle">
+             placeholder="Senha" autocomplete="current-password">
+      <button class="auth-toggle" id="authToggle" tabindex="-1">
         <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
     </div>
@@ -244,8 +242,8 @@
       <span id="authErrorMsg">Senha incorreta</span>
     </div>
     <div class="auth-actions">
-      <button class="btn btn-ghost" onclick="fecharAuth()">Cancelar</button>
-      <button class="btn btn-primary" id="btnConfirmarSenha" onclick="confirmarSenha()">
+      <button class="btn btn-ghost" id="btnFecharAuth">Cancelar</button>
+      <button class="btn btn-primary" id="btnConfirmarSenha">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         Entrar
       </button>
@@ -253,20 +251,19 @@
   </div>
 </div>
 
-
 <!-- ═══════════ MODAL HISTÓRICO ═══════════ -->
-<div class="hist-modal-backdrop hidden" id="histModalBackdrop" onclick="if(event.target===this)fecharHistorico()">
+<div class="hist-modal-backdrop hidden" id="histModalBackdrop">
   <div class="hist-modal">
     <div class="hist-header">
       <span class="hist-title" id="histTitle">Histórico de Toner</span>
-      <button class="modal-close" onclick="fecharHistorico()">×</button>
+      <button class="modal-close" id="btnFecharHistorico">×</button>
     </div>
     <div class="hist-body">
       <div class="dias-sel">
-        <button class="dias-btn active" onclick="mudarDias(7,this)">7 dias</button>
-        <button class="dias-btn" onclick="mudarDias(15,this)">15 dias</button>
-        <button class="dias-btn" onclick="mudarDias(30,this)">30 dias</button>
-        <button class="dias-btn" onclick="mudarDias(60,this)">60 dias</button>
+        <button class="dias-btn active" data-dias="7">7 dias</button>
+        <button class="dias-btn" data-dias="15">15 dias</button>
+        <button class="dias-btn" data-dias="30">30 dias</button>
+        <button class="dias-btn" data-dias="60">60 dias</button>
       </div>
       <div class="hist-stats">
         <div class="hist-stat"><div class="hist-stat-val" id="hStatAtual">—</div><div class="hist-stat-lbl">Atual</div></div>
@@ -285,11 +282,11 @@
 </div>
 
 <!-- ═══════════ MODAL NOTIFICAÇÕES ═══════════ -->
-<div class="notif-modal-backdrop hidden" id="notifModalBackdrop" onclick="if(event.target===this)fecharNotificacoes()">
+<div class="notif-modal-backdrop hidden" id="notifModalBackdrop">
   <div class="notif-modal">
     <div class="hist-header">
       <span class="hist-title">🔔 Configurar Notificações</span>
-      <button class="modal-close" onclick="fecharNotificacoes()">×</button>
+      <button class="modal-close" id="btnFecharNotificacoes">×</button>
     </div>
     <div class="hist-body">
       <div class="alert hidden" id="notifAlert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span id="notifAlertMsg"></span></div>
@@ -327,7 +324,7 @@
       <div class="notif-section">
         <div class="notif-section-title">📧 Notificação por E-mail</div>
         <div class="toggle-wrap">
-          <label class="toggle"><input type="checkbox" id="nEmailAtivo" onchange="toggleEmailFields()"><span class="toggle-slider"></span></label>
+          <label class="toggle"><input type="checkbox" id="nEmailAtivo"><span class="toggle-slider"></span></label>
           <span class="toggle-label">Ativar envio de e-mail</span>
         </div>
         <div id="emailFields">
@@ -358,7 +355,7 @@
               <label class="toggle"><input type="checkbox" id="nTls" checked><span class="toggle-slider"></span></label>
               <span class="toggle-label" style="font-size:.78rem">Usar TLS (STARTTLS)</span>
             </div>
-            <button class="btn btn-ghost" style="margin-left:auto;font-size:.75rem" onclick="testarEmail()">
+            <button class="btn btn-ghost" id="btnTestarEmail" style="margin-left:auto;font-size:.75rem">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
               Testar
             </button>
@@ -390,7 +387,7 @@
           </div>
         </div>
         <div style="display:flex;justify-content:flex-end;margin-top:.4rem">
-          <button class="btn btn-ghost" style="font-size:.75rem" onclick="testarWebhook()">
+          <button class="btn btn-ghost" id="btnTestarWebhook" style="font-size:.75rem">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             Testar Webhook
           </button>
@@ -398,8 +395,8 @@
       </div>
 
       <div class="form-actions">
-        <button class="btn btn-ghost" onclick="fecharNotificacoes()">Cancelar</button>
-        <button class="btn btn-primary" onclick="salvarNotificacoes()">
+        <button class="btn btn-ghost" id="btnCancelarNotificacoes">Cancelar</button>
+        <button class="btn btn-primary" id="btnSalvarNotificacoes">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
           Salvar Configurações
         </button>
@@ -408,7 +405,7 @@
   </div>
 </div>
 
-<!-- Scripts — ordem importa: state antes de tudo, main por último -->
+<!-- Scripts — ordem importa: state antes de tudo, events antes do main -->
 <script src="/static/js/state.js"></script>
 <script src="/static/js/theme.js"></script>
 <script src="/static/js/sparkline.js"></script>
@@ -421,5 +418,6 @@
 <script src="/static/js/historico.js"></script>
 <script src="/static/js/notificacao.js"></script>
 <script src="/static/js/main.js"></script>
+<script src="/static/js/events.js"></script>
 </body>
 </html>

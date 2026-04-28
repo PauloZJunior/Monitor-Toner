@@ -340,7 +340,8 @@ def exportar_csv():
     for imp in impressoras:
         hist = buscar_historico_resumido(imp["id"], limite=1)
         pct  = hist[0]["percentual"] if hist else None
-        st   = hist[0]["status"] if hist else "desconhecido"
+        print("HIST DEBUG:", hist)
+        st   = hist[0].get("status", "desconhecido") if hist else "desconhecido"
         dados.append({**imp, "percentual": pct, "status": st,
                       "cor_status": cor_por_pct(pct) if pct is not None else "desconhecido"})
     dados.sort(key=lambda x: (x.get("empresa",""), x.get("setor",""), x.get("nome","")))

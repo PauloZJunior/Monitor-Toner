@@ -21,22 +21,13 @@ app.secret_key = SECRET_KEY
 app.json.ensure_ascii = False
 app.permanent_session_lifetime = timedelta(minutes=SESSION_LIFETIME_MINUTES)
 
-# ─── Configurar Sessões (persistidas em Redis ou Filesystem) ─────────────────
-# Tenta conectar a Redis; fallback para filesystem se não disponível
-REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
-try:
-    redis_client = redis.from_url(REDIS_URL, decode_responses=True, socket_connect_timeout=2)
-    redis_client.ping()  # Testa conexão
-    app.config['SESSION_TYPE'] = 'redis'
-    app.config['SESSION_REDIS'] = redis_client
-    print("✓ Sessions: Redis (persistido)")
-except Exception as e:
-    # Fallback: filesystem
-    session_dir = os.path.join(os.path.dirname(__file__), "data", "sessions")
-    os.makedirs(session_dir, exist_ok=True)
-    app.config['SESSION_TYPE'] = 'filesystem'
-    app.config['SESSION_FILE_DIR'] = session_dir
-    print(f"⚠ Sessions: Filesystem (Redis indisponível: {e})")
+# ─── Configurar Sessões (Filesystem) ─────────────────────────────────────────
+# Usar filesystem para evitar problemas de serialização com Redis
+session_dir = os.path.join(os.path.dirname(__file__), "data", "sessions")
+os.makedirs(session_dir, exist_ok=True)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = session_dir
+print("✓ Sessions: Filesystem (persistido em data/sessions)")
 
 Session(app)
 
@@ -53,10 +44,10 @@ def set_security_headers(response):
     """Adiciona headers de segurança HTTP"""
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self'; "
-        "style-src 'self' 'unsafe-inline'; "
+        "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
         "img-src 'self' data:; "
-        "font-src 'self'; "
         "connect-src 'self'; "
         "frame-ancestors 'none'; "
         "base-uri 'self'"
@@ -74,13 +65,7 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(historico_bp)
 app.register_blueprint(notificacao_bp)
 
-TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
-
-@app.route("/")
-def index():
-    return send_from_directory(TEMPLATE_DIR, "index.html")
-
-
+# ─── Inicialização do banco de dados ───────────────────────────────────────────
 def inicializar():
     init_db()
     # Migração de JSON legado
@@ -93,10 +78,21 @@ def inicializar():
     # Limpa histórico com mais de 90 dias
     limpar_historico_antigo(dias=90)
 
+# Executa inicialização ao carregar o app (funciona com Gunicorn)
+try:
+    inicializar()
+except Exception as e:
+    logging.error(f"Erro na inicialização: {e}")
+
+TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
+
+@app.route("/")
+def index():
+    return send_from_directory(TEMPLATE_DIR, "index.html")
+
 
 if __name__ == "__main__":
     from config import HOST, PORT
-    inicializar()
     print("=" * 52)
     print("  MONITOR DE TONER v2")
     print(f"  Acesse: http://localhost:{PORT}")
