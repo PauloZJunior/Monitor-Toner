@@ -2,8 +2,11 @@
 app.py — Ponto de entrada do Monitor de Toner
 """
 import os
+import logging
 from datetime import timedelta
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, make_response
+from flask_session import Session
+import redis
 
 from config import SECRET_KEY, SESSION_LIFETIME_MINUTES
 from database import init_db, importar_json, limpar_historico_antigo
@@ -18,12 +21,52 @@ app.secret_key = SECRET_KEY
 app.json.ensure_ascii = False
 app.permanent_session_lifetime = timedelta(minutes=SESSION_LIFETIME_MINUTES)
 
+# ─── Configurar Sessões (persistidas em Redis ou Filesystem) ─────────────────
+# Tenta conectar a Redis; fallback para filesystem se não disponível
+REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+try:
+    redis_client = redis.from_url(REDIS_URL, decode_responses=True, socket_connect_timeout=2)
+    redis_client.ping()  # Testa conexão
+    app.config['SESSION_TYPE'] = 'redis'
+    app.config['SESSION_REDIS'] = redis_client
+    print("✓ Sessions: Redis (persistido)")
+except Exception as e:
+    # Fallback: filesystem
+    session_dir = os.path.join(os.path.dirname(__file__), "data", "sessions")
+    os.makedirs(session_dir, exist_ok=True)
+    app.config['SESSION_TYPE'] = 'filesystem'
+    app.config['SESSION_FILE_DIR'] = session_dir
+    print(f"⚠ Sessions: Filesystem (Redis indisponível: {e})")
+
+Session(app)
+
 # Segurança de cookies de sessão
 app.config.update(
     SESSION_COOKIE_HTTPONLY  = True,   # JS não acessa o cookie
-    SESSION_COOKIE_SAMESITE  = 'Lax',  # Proteção CSRF básica
+    SESSION_COOKIE_SAMESITE  = 'Strict',  # Rejeita POST cross-origin
     SESSION_COOKIE_SECURE    = False,  # Mudar para True se usar HTTPS
 )
+
+# ─── Headers de Segurança HTTP ────────────────────────────────────────────────
+@app.after_request
+def set_security_headers(response):
+    """Adiciona headers de segurança HTTP"""
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; "
+        "font-src 'self'; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'"
+    )
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    return response
 
 app.register_blueprint(api_bp)
 app.register_blueprint(crud_bp)

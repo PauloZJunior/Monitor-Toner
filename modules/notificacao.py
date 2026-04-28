@@ -1,39 +1,80 @@
 """
 modules/notificacao.py — Envio de notificações (e-mail e webhook)
 Suporta: SMTP, Microsoft Teams, Slack, webhook genérico
+Criptografia: Fernet (simétrica) para senhas
 """
 import smtplib
 import json
-import base64
+import os
+import socket
 import urllib.request
 import urllib.error
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from cryptography.fernet import Fernet, InvalidToken
 from database import (
     get_config_notificacao, alerta_ja_enviado,
     registrar_alerta_enviado, limpar_alertas_resolvidos,
 )
 
 
-def _obfuscar_senha(senha: str, key: str = "monitor-toner") -> str:
-    """Ofusca senha com XOR + base64 antes de salvar no banco."""
-    if not senha:
-        return ""
-    key_bytes  = (key * (len(senha) // len(key) + 1)).encode()[:len(senha)]
-    xored      = bytes(a ^ b for a, b in zip(senha.encode(), key_bytes))
-    return base64.b64encode(xored).decode()
+class PasswordVault:
+    """Criptografa/descriptografa senhas usando Fernet (simétrico)"""
+    
+    def __init__(self, key_path: str = None):
+        if key_path is None:
+            key_path = os.path.join(os.path.dirname(__file__), "..", "data", ".vault_key")
+        self.key_path = key_path
+        self._ensure_key()
+    
+    def _ensure_key(self):
+        """Gera e persiste chave mestra se não existir"""
+        os.makedirs(os.path.dirname(self.key_path), exist_ok=True)
+        
+        if os.path.exists(self.key_path):
+            with open(self.key_path, 'rb') as f:
+                key = f.read()
+        else:
+            key = Fernet.generate_key()
+            with open(self.key_path, 'wb') as f:
+                f.write(key)
+            # Protege permissões (apenas dono lê)
+            try:
+                os.chmod(self.key_path, 0o600)
+            except OSError:
+                pass  # Windows não suporta chmod
+        
+        self._cipher = Fernet(key)
+    
+    def encrypt(self, plaintext: str) -> str:
+        """Encrypta texto em base64"""
+        if not plaintext:
+            return ""
+        return self._cipher.encrypt(plaintext.encode()).decode()
+    
+    def decrypt(self, ciphertext: str) -> str:
+        """Decrypta texto, retorna plaintext ou string vazia se inválido"""
+        if not ciphertext:
+            return ""
+        try:
+            return self._cipher.decrypt(ciphertext.encode()).decode()
+        except (InvalidToken, Exception):
+            # Token inválido ou corrompido
+            return ""
 
 
-def _deobfuscar_senha(token: str, key: str = "monitor-toner") -> str:
-    """Reverte a ofuscação da senha."""
-    if not token:
-        return ""
-    try:
-        xored      = base64.b64decode(token.encode())
-        key_bytes  = (key * (len(xored) // len(key) + 1)).encode()[:len(xored)]
-        return bytes(a ^ b for a, b in zip(xored, key_bytes)).decode()
-    except Exception:
-        return token  # se falhar, retorna como está (senha antiga sem ofuscação)
+# Instância global
+_vault = PasswordVault()
+
+
+def _obfuscar_senha(senha: str) -> str:
+    """Criptografa senha com Fernet (seguro)"""
+    return _vault.encrypt(senha)
+
+
+def _deobfuscar_senha(token: str) -> str:
+    """Descriptografa senha (seguro)"""
+    return _vault.decrypt(token)
 
 NIVEL_EMOJI = {
     "critico": "🔴",
@@ -194,11 +235,13 @@ def _enviar_webhook(cfg, titulo, detalhe, impressora, percentual):
             headers={"Content-Type": "application/json"},
             method="POST"
         )
-        with urllib.request.urlopen(req, timeout=8) as resp:
+        with urllib.request.urlopen(req, timeout=10) as resp:
             return True, f"Webhook enviado (HTTP {resp.status})"
 
     except urllib.error.HTTPError as e:
         return False, f"HTTP {e.code}: {e.reason}"
+    except socket.timeout:
+        return False, f"Timeout ao conectar ao webhook (10s)"
     except Exception as e:
         return False, str(e)
 

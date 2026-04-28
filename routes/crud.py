@@ -8,6 +8,8 @@ POST /gerenciar/impressoras         → cria (requer autenticação)
 PUT  /gerenciar/impressoras/<id>    → atualiza (requer autenticação)
 DELETE /gerenciar/impressoras/<id>  → exclui (requer autenticação)
 """
+import re
+import ipaddress
 import sqlite3
 from flask import Blueprint, jsonify, request
 from database import (
@@ -23,6 +25,26 @@ CAMPOS_VALIDOS      = ["nome", "ip", "modelo", "tipo", "setor", "empresa",
                        "serial", "mac", "community", "ativo"]
 
 
+def _validar_ip(ip_str: str) -> bool:
+    """Valida formato de IPv4 usando ipaddress built-in"""
+    try:
+        addr = ipaddress.IPv4Address(ip_str)
+        # Rejeita broadcast, network, multicast
+        if addr.is_network or addr.is_broadcast or addr.is_multicast:
+            return False
+        return True
+    except (ipaddress.AddressValueError, ValueError):
+        return False
+
+
+def _validar_community(community: str) -> bool:
+    """Valida SNMP community string — rejeita caracteres especiais que podem ser SQL injection"""
+    if not community:
+        return True  # "public" é padrão se vazio
+    # Apenas alphanumeric, _, -, . permitidos
+    return bool(re.match(r'^[a-zA-Z0-9_\-\.]{1,32}$', community))
+
+
 def _validar_dados(dados, exigir_obrigatorios=True):
     """Valida os dados recebidos. Retorna (dados_limpos, erro_str | None)."""
     erros = []
@@ -32,16 +54,16 @@ def _validar_dados(dados, exigir_obrigatorios=True):
             if not dados.get(campo, "").strip():
                 erros.append(f"Campo obrigatório: {campo}")
 
-    # Validação básica de IP
+    # Validação de IP
     ip = dados.get("ip", "").strip()
     if ip:
-        partes = ip.split(".")
-        valido = (
-            len(partes) == 4 and
-            all(p.isdigit() and 0 <= int(p) <= 255 for p in partes)
-        )
-        if not valido:
-            erros.append("IP inválido — use o formato 192.168.1.100")
+        if not _validar_ip(ip):
+            erros.append("IP inválido — use formato válido como 192.168.1.100")
+
+    # Validação de SNMP Community (proteção contra SQL injection)
+    community = dados.get("community", "public").strip()
+    if community and not _validar_community(community):
+        erros.append("Community SNMP inválida — use apenas letras, números, _, -, .")
 
     if erros:
         return None, "; ".join(erros)

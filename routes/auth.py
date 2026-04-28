@@ -5,8 +5,8 @@ Blueprint: /auth
 Apenas as operações de escrita (POST, PUT, DELETE) exigem autenticação.
 A visualização do dashboard é sempre pública.
 """
-import hashlib
 import time
+import bcrypt
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import Blueprint, jsonify, request, session
@@ -81,9 +81,14 @@ def login():
     if not senha:
         return jsonify({"erro": "Senha não informada"}), 400
 
-    hash_recebido = hashlib.sha256(senha.encode()).hexdigest()
+    # Verifica senha contra hash bcrypt
+    try:
+        senha_valida = bcrypt.checkpw(senha.encode(), ADMIN_PASSWORD_HASH.encode())
+    except Exception:
+        # Hash bcrypt inválido — falha de segurança
+        return jsonify({"erro": "Erro ao verificar credenciais"}), 500
 
-    if hash_recebido != ADMIN_PASSWORD_HASH:
+    if not senha_valida:
         # Registra tentativa falha e aplica delay
         tentativas.append(agora)
         _tentativas_login[ip] = tentativas

@@ -2,7 +2,7 @@
 config.py — Configurações globais, OIDs SNMP e constantes
 """
 import os
-import hashlib
+import sys
 
 # ── Caminhos ──────────────────────────────────────────
 BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
@@ -56,12 +56,16 @@ COR_TINTA = {
 }
 
 # ── Autenticação ──────────────────────────────────────
-# Senha padrão: "admin123" — ALTERE antes de usar em produção!
-# Para gerar um hash: python3 -c "import hashlib; print(hashlib.sha256(b'SENHA').hexdigest())"
-ADMIN_PASSWORD_HASH = os.environ.get(
-    "ADMIN_PASSWORD_HASH",
-    hashlib.sha256(b"admin123").hexdigest()
-)
+# OBRIGATÓRIO: Definir senha via variável de ambiente ADMIN_PASSWORD_HASH
+# Gere com: python3 -c "import bcrypt; print(bcrypt.hashpw(b'SENHA_SEGURA', bcrypt.gensalt(rounds=12)).decode())"
+ADMIN_PASSWORD_HASH = os.environ.get("ADMIN_PASSWORD_HASH")
+if not ADMIN_PASSWORD_HASH:
+    import sys
+    print("❌ ERRO CRÍTICO: Variável de ambiente ADMIN_PASSWORD_HASH não definida!")
+    print("   Gere um hash bcrypt seguro com:")
+    print("   python3 -c \"import bcrypt; print(bcrypt.hashpw(b'SENHA_SEGURA', bcrypt.gensalt(rounds=12)).decode())\"")
+    print("   Depois exporte: export ADMIN_PASSWORD_HASH=<hash_gerado>")
+    sys.exit(1)
 
 # ── SECRET_KEY persistida em arquivo ─────────────────
 # FIX BUG 1: SECRET_KEY deve ser a mesma entre todos os workers Gunicorn.
