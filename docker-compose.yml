@@ -1,0 +1,17 @@
+services:
+  monitor-toner:
+    build: .
+    container_name: monitor-toner
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=America/Sao_Paulo
+      # Para alterar senha admin:
+      # - ADMIN_PASSWORD_HASH=<hash gerado com: python3 -c "import hashlib; print(hashlib.sha256(b'SENHA').hexdigest())">
+    ports:
+      - "80:5000"     # acessa pelo http://localhost
+    # ATENÇÃO: network_mode: host NÃO funciona no Windows/Mac
+    # No Linux (servidor), substitua "ports" por:
+    # network_mode: host
+    # (necessário para o SNMP alcançar as impressoras na rede)

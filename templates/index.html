@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Monitor de Toner</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/main.css">
+<!-- Chart.js — carregado no head para garantir disponibilidade no modal de histórico -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loader"></div>
+  <div class="loading-text">CONSULTANDO IMPRESSORAS...</div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <!-- ESQUERDA: Despertar + Atualizar + Exportar -->
+  <div class="header-left">
+    <button class="btn btn-warning" id="btnWake" onclick="despertarTodas()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
+      <span>Despertar</span>
+    </button>
+    <button class="btn btn-primary" id="btnRefresh" onclick="carregarDados()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      <span>Atualizar</span>
+    </button>
+    <a class="btn btn-ghost" href="/api/exportar/csv" download title="Exportar CSV">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>Exportar</span>
+    </a>
+  </div>
+
+  <!-- CENTRO: Logo + Título -->
+  <div class="header-center">
+    <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M6 2h12v4H6zM4 8h16v10H4zM8 18v4h8v-4"/></svg></div>
+    <div class="header-title">Monitor de <span>Toner</span></div>
+  </div>
+
+  <!-- DIREITA: Última atualização + Admin + Gerenciar + Tema -->
+  <div class="header-right">
+    <div class="update-info">Última atualização<br><span class="time" id="lastUpdate">—</span></div>
+    <div class="header-sep"></div>
+    <div class="auth-badge" id="authBadge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span>Admin</span>
+      <button class="logout-btn" onclick="fazerLogout()">sair</button>
+    </div>
+    <button class="btn btn-ghost" onclick="abrirNotificacoes()" title="Configurar Notificações">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <span class="notif-dot-wrap"><span class="btn-notif-lbl">Alertas</span></span>
+    </button>
+    <button class="btn btn-ghost" onclick="abrirGerenciador()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+      <span>Gerenciar</span>
+    </button>
+    <button class="btn btn-icon btn-ghost" onclick="alternarTema()" title="Alternar tema">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      <svg class="icon-sun" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- SUMMARY -->
+<div class="summary-bar">
+  <div class="summary-item s-total">
+    <div class="s-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h12M6 13h8"/></svg></div>
+    <div><div class="s-num" id="s-total">—</div><div class="s-lbl">Total</div></div>
+  </div>
+  <div class="summary-item s-online">
+    <div class="s-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg></div>
+    <div><div class="s-num" id="s-online">—</div><div class="s-lbl">Online</div></div>
+  </div>
+  <div class="summary-item s-critico">
+    <div class="s-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div><div class="s-num" id="s-critico">—</div><div class="s-lbl">Crítico / Baixo</div></div>
+  </div>
+  <div class="summary-item s-offline">
+    <div class="s-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg></div>
+    <div><div class="s-num" id="s-offline">—</div><div class="s-lbl">Offline</div></div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <span class="toolbar-lbl">Status:</span>
+  <div class="sel-wrap"><select class="sel" id="selStatus" onchange="filtrarStatus(this.value)">
+    <option value="todos">Todas</option>
+    <option value="critico">🔴 Crítico</option>
+    <option value="baixo">🟠 Baixo</option>
+    <option value="medio">🟡 Médio</option>
+    <option value="ok">🟢 OK</option>
+    <option value="offline">⚫ Offline</option>
+  </select></div>
+  <span class="toolbar-lbl">Empresa:</span>
+  <div class="sel-wrap"><select class="sel" id="selEmpresa" onchange="filtrarEmpresa(this.value||null)">
+    <option value="">Todas</option>
+  </select></div>
+  <span class="toolbar-lbl">Tipo:</span>
+  <div class="sel-wrap"><select class="sel" id="selTipo" onchange="filtrarTipo(this.value||null)">
+    <option value="">Todos</option>
+    <option value="toner">🖨️ Toner/Tinta</option>
+    <option value="etiqueta">🏷️ Etiqueta</option>
+  </select></div>
+  <input type="text" class="search-box" id="searchBox" placeholder="🔍  Buscar...">
+</div>
+
+<!-- GRID -->
+<div class="grid-container" id="grid"></div>
+
+<!-- AUTO REFRESH -->
+<div class="auto-refresh"><div class="ar-dot"></div><span id="nextRefresh">Próxima atualização em 5:00</span></div>
+
+<!-- WAKE TOAST -->
+<div class="wake-toast hidden" id="wakeToast">
+  <button class="wt-close" onclick="document.getElementById('wakeToast').classList.add('hidden')">×</button>
+  <div class="wt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg><span id="wtTitle">Acordando...</span></div>
+  <div class="wt-row"><span>Alcançadas</span><span id="wtAcordaram">—</span></div>
+  <div class="wt-row"><span>Sem resposta</span><span id="wtFalhas">—</span></div>
+  <div class="wt-row"><span>Total</span><span id="wtTotal">—</span></div>
+  <div class="wt-progress"><div class="wt-bar" id="wtBar" style="width:0%"></div></div>
+</div>
+
+<!-- ═══════════════════ MODAL GERENCIADOR ═══════════════════ -->
+<div class="modal-backdrop hidden" id="modalBackdrop" onclick="fecharSeClicouFora(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Gerenciar Impressoras</span>
+      <button class="modal-close" onclick="fecharModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <!-- TABS -->
+      <div class="modal-tabs">
+        <button class="modal-tab active" onclick="mudarTab('lista')">📋 Lista</button>
+        <button class="modal-tab" onclick="mudarTab('form')">➕ Nova Impressora</button>
+      </div>
+
+      <!-- ALERTA -->
+      <div class="alert hidden" id="modalAlert">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="modalAlertMsg"></span>
+      </div>
+
+      <!-- TAB: LISTA -->
+      <div class="tab-panel active" id="tab-lista">
+        <div id="printerList" class="printer-list"></div>
+        <div style="text-align:center;padding:.5rem;font-size:.75rem;color:var(--text3)" id="listEmpty" class="hidden">Nenhuma impressora cadastrada.</div>
+      </div>
+
+      <!-- TAB: FORMULÁRIO -->
+      <div class="tab-panel" id="tab-form">
+        <input type="hidden" id="formId">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nome <span>*</span></label>
+            <input class="form-input" id="fNome" placeholder="Ex: Impressora Recepção">
+          </div>
+          <div class="form-group">
+            <label class="form-label">IP <span>*</span></label>
+            <input class="form-input" id="fIp" placeholder="Ex: 192.168.1.100">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Modelo</label>
+            <input class="form-input" id="fModelo" placeholder="Ex: Samsung M4070, Zebra ZD420">
+            <span class="form-hint">Inclua a marca para detecção automática do fabricante</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo de Impressora <span>*</span></label>
+            <div class="sel-wrap" style="width:100%">
+              <select class="sel form-select-field" id="fTipo" style="min-width:100%;padding:.5rem 1.7rem .5rem .75rem">
+                <option value="toner">🖨️ Toner / Tinta (laser, jato de tinta)</option>
+                <option value="etiqueta">🏷️ Etiqueta térmica (Zebra, Argox, Elgin...)</option>
+              </select>
+            </div>
+            <span class="form-hint" id="tipoHint">Etiqueta: apenas verifica online/offline, sem leitura de toner</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Community SNMP</label>
+            <input class="form-input" id="fCommunity" placeholder="public" value="public">
+            <span class="form-hint" id="communityHint">Não necessário para impressoras de etiqueta</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Setor</label>
+            <input class="form-input" id="fSetor" placeholder="Ex: Recepção, TI, Financeiro">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Empresa</label>
+            <input class="form-input" id="fEmpresa" placeholder="Ex: Empresa A">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nº Série</label>
+            <input class="form-input" id="fSerial" placeholder="Opcional — buscado via SNMP automaticamente">
+          </div>
+          <div class="form-group">
+            <label class="form-label">MAC</label>
+            <input class="form-input" id="fMac" placeholder="Opcional — buscado via SNMP automaticamente">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" onclick="cancelarForm()">Cancelar</button>
+          <button class="btn btn-primary" id="btnSalvar" onclick="salvarImpressora()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="confirm-modal hidden" id="confirmModal">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title" id="confirmTitle">Confirmar exclusão</div>
+    <div class="confirm-msg" id="confirmMsg">Deseja remover esta impressora?</div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" onclick="fecharConfirm()">Cancelar</button>
+      <button class="btn btn-danger" id="btnConfirmOk">Excluir</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════ MODAL DE SENHA ═══════════════════ -->
+<div class="auth-modal hidden" id="authModal">
+  <div class="auth-box">
+    <div class="auth-icon">🔐</div>
+    <div class="auth-title">Acesso Restrito</div>
+    <div class="auth-sub">Digite a senha de administrador<br>para gerenciar as impressoras.</div>
+    <div class="auth-input-wrap">
+      <input class="auth-input" type="password" id="authSenha"
+             placeholder="Senha" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter') confirmarSenha()">
+      <button class="auth-toggle" onclick="toggleSenha()" tabindex="-1" id="authToggle">
+        <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+    <div class="auth-error hidden" id="authError">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      <span id="authErrorMsg">Senha incorreta</span>
+    </div>
+    <div class="auth-actions">
+      <button class="btn btn-ghost" onclick="fecharAuth()">Cancelar</button>
+      <button class="btn btn-primary" id="btnConfirmarSenha" onclick="confirmarSenha()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Entrar
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════ MODAL HISTÓRICO ═══════════ -->
+<div class="hist-modal-backdrop hidden" id="histModalBackdrop" onclick="if(event.target===this)fecharHistorico()">
+  <div class="hist-modal">
+    <div class="hist-header">
+      <span class="hist-title" id="histTitle">Histórico de Toner</span>
+      <button class="modal-close" onclick="fecharHistorico()">×</button>
+    </div>
+    <div class="hist-body">
+      <div class="dias-sel">
+        <button class="dias-btn active" onclick="mudarDias(7,this)">7 dias</button>
+        <button class="dias-btn" onclick="mudarDias(15,this)">15 dias</button>
+        <button class="dias-btn" onclick="mudarDias(30,this)">30 dias</button>
+        <button class="dias-btn" onclick="mudarDias(60,this)">60 dias</button>
+      </div>
+      <div class="hist-stats">
+        <div class="hist-stat"><div class="hist-stat-val" id="hStatAtual">—</div><div class="hist-stat-lbl">Atual</div></div>
+        <div class="hist-stat"><div class="hist-stat-val" id="hStatMin">—</div><div class="hist-stat-lbl">Mínimo</div></div>
+        <div class="hist-stat"><div class="hist-stat-val" id="hStatMedio">—</div><div class="hist-stat-lbl">Médio</div></div>
+        <div class="hist-stat"><div class="hist-stat-val" id="hStatPrevisao" style="font-size:.9rem">—</div><div class="hist-stat-lbl">Previsão fim</div></div>
+      </div>
+      <div class="hist-chart-wrap">
+        <canvas id="histChart"></canvas>
+      </div>
+      <div style="font-size:.72rem;color:var(--text3);text-align:center" id="histEmpty" class="hidden">
+        Sem dados históricos suficientes para exibir o gráfico.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL NOTIFICAÇÕES ═══════════ -->
+<div class="notif-modal-backdrop hidden" id="notifModalBackdrop" onclick="if(event.target===this)fecharNotificacoes()">
+  <div class="notif-modal">
+    <div class="hist-header">
+      <span class="hist-title">🔔 Configurar Notificações</span>
+      <button class="modal-close" onclick="fecharNotificacoes()">×</button>
+    </div>
+    <div class="hist-body">
+      <div class="alert hidden" id="notifAlert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span id="notifAlertMsg"></span></div>
+
+      <!-- Configurações Gerais -->
+      <div class="notif-section">
+        <div class="notif-section-title">⚙️ Configurações Gerais</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Alertar quando nível estiver</label>
+            <div class="sel-wrap" style="width:100%">
+              <select class="sel form-select-field" id="nNivel" style="min-width:100%;padding:.5rem 1.7rem .5rem .75rem">
+                <option value="critico">🔴 Crítico (≤10%)</option>
+                <option value="baixo">🟠 Baixo (≤25%)</option>
+                <option value="medio">🟡 Médio (≤50%)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Intervalo entre alertas</label>
+            <div class="sel-wrap" style="width:100%">
+              <select class="sel form-select-field" id="nIntervalo" style="min-width:100%;padding:.5rem 1.7rem .5rem .75rem">
+                <option value="1">1 hora</option>
+                <option value="2">2 horas</option>
+                <option value="4" selected>4 horas</option>
+                <option value="8">8 horas</option>
+                <option value="24">24 horas</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- E-mail -->
+      <div class="notif-section">
+        <div class="notif-section-title">📧 Notificação por E-mail</div>
+        <div class="toggle-wrap">
+          <label class="toggle"><input type="checkbox" id="nEmailAtivo" onchange="toggleEmailFields()"><span class="toggle-slider"></span></label>
+          <span class="toggle-label">Ativar envio de e-mail</span>
+        </div>
+        <div id="emailFields">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Servidor SMTP</label>
+              <input class="form-input" id="nSmtp" placeholder="smtp.gmail.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Porta</label>
+              <input class="form-input" id="nPorta" placeholder="587" value="587">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Usuário (e-mail de envio)</label>
+              <input class="form-input" id="nUsuario" placeholder="monitor@empresa.com" type="email">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Senha</label>
+              <input class="form-input" id="nSenha" placeholder="senha ou app password" type="password">
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Destinatários (separados por vírgula)</label>
+              <input class="form-input" id="nDestinos" placeholder="ti@empresa.com, gerente@empresa.com">
+            </div>
+          </div>
+          <div style="display:flex;gap:.5rem;margin-top:.5rem">
+            <div class="toggle-wrap" style="margin:0">
+              <label class="toggle"><input type="checkbox" id="nTls" checked><span class="toggle-slider"></span></label>
+              <span class="toggle-label" style="font-size:.78rem">Usar TLS (STARTTLS)</span>
+            </div>
+            <button class="btn btn-ghost" style="margin-left:auto;font-size:.75rem" onclick="testarEmail()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Testar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Webhook -->
+      <div class="notif-section">
+        <div class="notif-section-title">🔗 Webhook (Teams / Slack / Genérico)</div>
+        <div class="toggle-wrap">
+          <label class="toggle"><input type="checkbox" id="nWebhookAtivo"><span class="toggle-slider"></span></label>
+          <span class="toggle-label">Ativar webhook</span>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Tipo</label>
+            <div class="sel-wrap" style="width:100%">
+              <select class="sel form-select-field" id="nWebhookTipo" style="min-width:100%;padding:.5rem 1.7rem .5rem .75rem">
+                <option value="teams">Microsoft Teams</option>
+                <option value="slack">Slack</option>
+                <option value="generic">Genérico (JSON)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">URL do Webhook</label>
+            <input class="form-input" id="nWebhookUrl" placeholder="https://...">
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:.4rem">
+          <button class="btn btn-ghost" style="font-size:.75rem" onclick="testarWebhook()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Testar Webhook
+          </button>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="fecharNotificacoes()">Cancelar</button>
+        <button class="btn btn-primary" onclick="salvarNotificacoes()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+          Salvar Configurações
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts — ordem importa: state antes de tudo, main por último -->
+<script src="/static/js/state.js"></script>
+<script src="/static/js/theme.js"></script>
+<script src="/static/js/sparkline.js"></script>
+<script src="/static/js/filters.js"></script>
+<script src="/static/js/render.js"></script>
+<script src="/static/js/api.js"></script>
+<script src="/static/js/auth.js"></script>
+<script src="/static/js/wake.js"></script>
+<script src="/static/js/crud.js"></script>
+<script src="/static/js/historico.js"></script>
+<script src="/static/js/notificacao.js"></script>
+<script src="/static/js/main.js"></script>
+</body>
+</html>

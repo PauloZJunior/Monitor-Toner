@@ -1,0 +1,11 @@
+data/
+mnt/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+*.md
+*.bat
+testar_*.py
+*.migrado
+.env

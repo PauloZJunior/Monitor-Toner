@@ -1,0 +1,243 @@
+[
+    {
+        "nome": "PORTARIA - ENTRADA",
+        "ip": "172.20.130.68",
+        "modelo": "Samsung M4070FR",
+        "serie": "ZDDPB07M114T61F",
+        "mac": "84:25:19:6B:A1:BF",
+        "setor": "Portaria",
+        "community": "public",
+        "empresa": "PSSM"
+        
+    },
+    {
+        "nome": "PORTARIA - SAÍDA",
+        "ip": "172.20.130.108",
+        "modelo": "Samsung M4020ND",
+        "serie": "ZDEJB07JA10DS8Z",
+        "mac": "84:25:19:1C:D8:F6",
+        "setor": "Portaria",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "DIRETORIA",
+        "ip": "172.20.130.106",
+        "modelo": "Samsung M4070FR",
+        "serie": "ZDDPB07JB10GTYN",
+        "mac": "84:25:19:1C:BD:18",
+        "setor": "Diretoria",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "FATURAMENTO",
+        "ip": "172.20.130.113",
+        "modelo": "Samsung M4070FR",
+        "serie": "ZDDPB07JB10JWNM",
+        "mac": "84:25:19:1C:E7:5E",
+        "setor": "Faturamento",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "CONTAINER ALFANDEGADO",
+        "ip": "172.20.130.115",
+        "modelo": "Samsung M4070FR",
+        "serie": "ZDDPB07JC10VPGD",
+        "mac": "84:25:19:1D:0E:32",
+        "setor": "Container Alfandegado",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "ADMINISTRATIVO SUPERIOR ",
+        "ip": "172.20.130.121",
+        "modelo": "Samsung M4070FR",
+        "serie": "ZDDPB07K91441PY",
+        "mac": "84:25:19:6B:37:0E",
+        "setor": "Administrativo Superior",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "RECEPÇÃO",
+        "ip": "172.20.130.104",
+        "modelo": "Samsung M4070FR",
+        "serie": "ZDDPB07M114SVDE",
+        "mac": "30:CD:A7:C9:90:6B",
+        "setor": "Recepção",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "CONTAINER CAFÉ",
+        "ip": "172.20.130.6",
+        "modelo": "Samsung M4070FR",
+        "serie": "ZDDPB07JC10SXWW",
+        "mac": "84:25:19:1C:BD:18",
+        "setor": "Container Café",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "ADMINISTRATIVO SUPERIOR 1",
+        "ip": "172.20.130.105",
+        "modelo": "Samsung M4070FR",
+        "serie": "ZER4BQAG2000D6T",
+        "mac": "30:CD:A7:C9:80:1F",
+        "setor": "Administrativo Superior 1",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "ADMINISTRATIVO TERREO",
+        "ip": "172.20.130.97",
+        "modelo": "Samsung M4020ND",
+        "serie": "ZEQYBQAF9003MPA",
+        "mac": "30:CD:A7:65:3A:57",
+        "setor": "Administrativo Terreo",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "FINANCEIRO",
+        "ip": "172.20.129.110",
+        "modelo": "Samsung M4070FR",
+        "serie": "ZDEJB07K72333ZA",
+        "mac": "84:25:19:1E:21:68",
+        "setor": "Financeiro",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "DEPARTAMENTO PESSOAL",
+        "ip": "172.20.130.111",
+        "modelo": "Samsung M4070FR",
+        "serie": "ZDEJB07K522HV5A",
+        "mac": "84:25:19:1D:D2:BE",
+        "setor": "Departamento Pessoal",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "MANUTENÇÃO ELÉTRICA",
+        "ip": "172.20.130.123",
+        "modelo": "Samsung M4070FR",
+        "serie": "ZDEJB07JB10LD1F",
+        "mac": "84:25:19:1C:EB:4B",
+        "setor": "Manutenção Elétrica",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "ALMOXARIFADO",
+        "ip": "172.20.129.210",
+        "modelo": "Brother DCP-7065DN",
+        "serie": "U62712A4N473306",
+        "mac": "30:05:5C:34:2C:FA",
+        "setor": "Almoxarifado",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "CAMILA PAIVA",
+        "ip": "172.20.116.99",
+        "modelo": "Ricoh SP 3710SF",
+        "serie": "5170ZA10149",
+        "mac": "58:38:79:31:D0:DB",
+        "setor": "Camila Paiva",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "DIRETORIA",
+        "ip": "172.20.130.151",
+        "modelo": "Epson WF-L6490",
+        "serie": " X952013191",
+        "mac": "N/A",
+        "setor": "172.20.130.151",
+        "community": "public",
+        "empresa": "PSSM"
+    },
+    {
+        "nome": "ADMINISTRATIVO",
+        "ip": "172.20.130.12",
+        "modelo": "Samsung M4070FR",
+        "serie": " ZDDPB07K211G4FY",
+        "mac": "84:25:19:1D:51:48",
+        "setor": "Administrativo",
+        "community": "public",
+        "empresa": "Logati-1"
+    },
+    {
+        "nome": "DOCAS",
+        "ip": "172.20.130.98",
+        "modelo": "Samsung M4070FR",
+        "serie": " ZDDPB07M114RN2B",
+        "mac": "84:25:19:6B:95:3B",
+        "setor": "Docas",
+        "community": "public",
+        "empresa": "Logati-1"
+    },
+    {
+        "nome": "CONTAINER DIREITO",
+        "ip": "172.20.130.175",
+        "modelo": "Ricoh SP 3710SF",
+        "serie": " 5178Z713486",
+        "mac": "00:26:73:F4:E6:3D",
+        "setor": "Container Direito",
+        "community": "public",
+        "empresa": "Logati-1"
+    },
+    {
+        "nome": "SALA CLIENTES",
+        "ip": "172.20.130.220",
+        "modelo": "Samsung M4070FR",
+        "serie": "  ZDDPB07M114T5VX",
+        "mac": "00:15:99:D0:68:53",
+        "setor": "Sala Clientes",
+        "community": "public",
+        "empresa": "Logati-2"
+    },
+    {
+        "nome": "ADMINISTRATIVO",
+        "ip": "172.20.130.174",
+        "modelo": "Samsung M4070FR",
+        "serie": " ZER4BQAD700071D",
+        "mac": "00:15:99:D0:67:B7",
+        "setor": "Administrativo",
+        "community": "public",
+        "empresa": "Logati-2"
+    },
+    {
+        "nome": "DOCAS",
+        "ip": "172.20.129.211",
+        "modelo": "Samsung M4070FR",
+        "serie": " ZER4BQAD700091B ",
+        "mac": " 84:25:19:1D:45:03",
+        "setor": "Docas",
+        "community": "public",
+        "empresa": "Logati-2"
+    },
+    {
+        "nome": "ADMINISTRATIVO",
+        "ip": "172.20.129.221",
+        "modelo": "Brother DCP-8085DN",
+        "serie": "C0J353532",
+        "mac": "00:1B:A9:3D:B0:DD",
+        "setor": "Administrativo",
+        "community": "public",
+        "empresa": "Logati-4"
+    },
+    {
+        "nome": "ADMINISTRATIVO",
+        "ip": "172.20.130.237",
+        "modelo": "Ricoh SP 3710SF",
+        "serie": "5178ZA10660",
+        "mac": "58:38:79:19:0A:41",
+        "setor": "Administrativo",
+        "community": "public",
+        "empresa": "Logati-4"
+    }
+]
