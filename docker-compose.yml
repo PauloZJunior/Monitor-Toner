@@ -32,8 +32,19 @@ services:
       - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
       # URL de conexão com Redis (compartilhada com app)
       - REDIS_URL=redis://redis:6379/0
-    ports:
-     - "5000:5000"     # acessa pelo http://localhost
+    networks:
+      - default
+      - trefik
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.monitor.rule=Host(`monitortoner-pssm`)"
+      - "traefik.http.routers.monitor.entrypoints=websecure"
+      - "traefik.http.routers.monitor.tls=true"
+      - "traefik.http.services.monitor.loadbalancer.server.port=5000"
+    #ports:
+    # - "5000:5000"     # acessa pelo http://localhost
     # ATENÇÃO: network_mode: host NÃO funciona no Windows/Mac
     # No Linux (servidor), substitua "ports" por:
     # network_mode: host
@@ -41,3 +52,7 @@ services:
 
 volumes:
   redis_data:
+
+networks:
+  trefik:
+    external: true
