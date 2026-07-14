@@ -33,7 +33,7 @@ services:
       # URL de conexão com Redis (compartilhada com app)
       - REDIS_URL=redis://redis:6379/0
     ports:
-      - "80:5000"     # acessa pelo http://localhost
+     - "5000:5000"     # acessa pelo http://localhost
     # ATENÇÃO: network_mode: host NÃO funciona no Windows/Mac
     # No Linux (servidor), substitua "ports" por:
     # network_mode: host

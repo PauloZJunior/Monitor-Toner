@@ -165,11 +165,58 @@ def ler_toner_epson(ip, community):
     tintas = []
 
     # OIDs proprietários Epson
-    for idx in range(1, 8):
-        cur = snmp_get_int(ip, community, f"{OID_EPSON_INK_CURR}.{idx}", timeout=T)
-        mx  = snmp_get_int(ip, community, f"{OID_EPSON_INK_MAX}.{idx}",  timeout=T)
-        if cur is not None and mx and mx > 0:
-            tintas.append({"idx": idx, "pct": min(100, round(cur/mx*100)), "source": "epson"})
+    #for idx in range(1, 8):
+    #    cur = snmp_get_int(ip, community, f"{OID_EPSON_INK_CURR}.{idx}", timeout=T)
+    #    mx  = snmp_get_int(ip, community, f"{OID_EPSON_INK_MAX}.{idx}",  timeout=T)
+    #    if cur is not None and mx and mx > 0:
+    #        tintas.append({"idx": idx, "pct": min(100, round(cur/mx*100)), "source": "epson"})
+
+    # WF-L6490 funciona pela Printer-MIB padrão
+    tintas = []
+
+    for idx in range(1, 10):
+        desc = snmp_get_str(
+            ip,
+            community,
+            f"{OID_SUPPLY_DESC}.{idx}",
+            timeout=T
+        ) or ""
+
+        if any(
+            x in desc.lower()
+            for x in [
+                "drum",
+                "cilindro",
+                "fus",
+                "maintenance",
+                "waste",
+                "caixa",
+                "manut"
+            ]
+        ):
+            continue
+
+        mx = snmp_get_int(
+            ip,
+            community,
+            f"{OID_SUPPLY_MAX}.{idx}",
+            timeout=T
+        )
+
+        cur = snmp_get_int(
+            ip,
+            community,
+            f"{OID_SUPPLY_CURR}.{idx}",
+            timeout=T
+        )
+
+        if mx and cur is not None and mx > 0 and cur >= 0:
+            tintas.append({
+                "idx": idx,
+                "pct": min(100, round(cur / mx * 100)),
+                "desc": desc,
+                "source": "padrao"
+            })
 
     # Fallback: Printer MIB padrão
     if not tintas:
@@ -178,7 +225,11 @@ def ler_toner_epson(ip, community):
             if any(x in desc.lower() for x in ["drum","cilindro","fus","maintenance","waste","caixa","manut"]):
                 continue
             mx  = snmp_get_int(ip, community, f"{OID_SUPPLY_MAX}.{idx}",  timeout=T)
+            if max is None:
+                mx  = snmp_get_int(ip, community, f"{OID_SUPPLY_MAX}.{idx}",  timeout=T)
             cur = snmp_get_int(ip, community, f"{OID_SUPPLY_CURR}.{idx}", timeout=T)
+            if cur is None:
+                cur = snmp_get_int(ip, community, f"{OID_SUPPLY_CURR}.{idx}", timeout=T)
             if mx and cur is not None and mx > 0 and cur >= 0:
                 tintas.append({"idx": idx, "pct": min(100, round(cur/mx*100)), "desc": desc, "source": "padrao"})
 

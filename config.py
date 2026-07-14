@@ -15,7 +15,7 @@ WORKERS   = 2
 TIMEOUT   = 120
 
 # ── SNMP ──────────────────────────────────────────────
-SNMP_TIMEOUT      = 2
+SNMP_TIMEOUT      = 3
 SNMP_MAX_WORKERS  = 15
 
 # OIDs padrão Printer MIB (RFC 3805)
