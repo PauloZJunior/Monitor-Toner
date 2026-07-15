@@ -40,7 +40,7 @@ Session(app)
 app.config.update(
     SESSION_COOKIE_HTTPONLY  = True,   # JS não acessa o cookie
     SESSION_COOKIE_SAMESITE  = 'Strict',  # Rejeita POST cross-origin
-    SESSION_COOKIE_SECURE    = False,  # Mudar para True se usar HTTPS
+    SESSION_COOKIE_SECURE    = True,  # Mudar para True se usar HTTPS
 )
 
 # ─── Headers de Segurança HTTP ────────────────────────────────────────────────
