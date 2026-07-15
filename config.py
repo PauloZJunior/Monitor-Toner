@@ -11,8 +11,8 @@ DB_PATH   = os.path.join(BASE_DIR, "data", "impressoras.db")
 # ── Servidor ──────────────────────────────────────────
 HOST      = "0.0.0.0"
 PORT      = 5000
-WORKERS   = 2
-TIMEOUT   = 120
+# WORKERS e TIMEOUT do Gunicorn são definidos direto no Dockerfile (CMD).
+# Se precisar mudar, edite lá — estas constantes não eram lidas por ninguém.
 
 # ── SNMP ──────────────────────────────────────────────
 SNMP_TIMEOUT      = 3
@@ -60,7 +60,6 @@ COR_TINTA = {
 # Gere com: python3 -c "import bcrypt; print(bcrypt.hashpw(b'SENHA_SEGURA', bcrypt.gensalt(rounds=12)).decode())"
 ADMIN_PASSWORD_HASH = os.environ.get("ADMIN_PASSWORD_HASH")
 if not ADMIN_PASSWORD_HASH:
-    import sys
     print("❌ ERRO CRÍTICO: Variável de ambiente ADMIN_PASSWORD_HASH não definida!")
     print("   Gere um hash bcrypt seguro com:")
     print("   python3 -c \"import bcrypt; print(bcrypt.hashpw(b'SENHA_SEGURA', bcrypt.gensalt(rounds=12)).decode())\"")

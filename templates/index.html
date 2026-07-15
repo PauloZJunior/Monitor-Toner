@@ -59,7 +59,7 @@
     </button>
     <button class="btn btn-icon btn-ghost" id="btnTema" title="Alternar tema">
       <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-      <svg class="icon-sun" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-sun icon-hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     </button>
   </div>
 </header>
@@ -147,7 +147,7 @@
       <!-- TAB: LISTA -->
       <div class="tab-panel active" id="tab-lista">
         <div id="printerList" class="printer-list"></div>
-        <div style="text-align:center;padding:.5rem;font-size:.75rem;color:var(--text3)" id="listEmpty" class="hidden">Nenhuma impressora cadastrada.</div>
+        <div class="empty-msg hidden" id="listEmpty">Nenhuma impressora cadastrada.</div>
       </div>
 
       <!-- TAB: FORMULÁRIO -->
@@ -169,8 +169,8 @@
           </div>
           <div class="form-group">
             <label class="form-label">Tipo de Impressora <span>*</span></label>
-            <div class="sel-wrap" style="width:100%">
-              <select class="sel form-select-field" id="fTipo" style="min-width:100%;padding:.5rem 1.7rem .5rem .75rem">
+            <div class="sel-wrap sel-wrap-full">
+              <select class="sel form-select-field sel-full" id="fTipo">
                 <option value="toner">🖨️ Toner / Tinta (laser, jato de tinta)</option>
                 <option value="etiqueta">🏷️ Etiqueta térmica (Zebra, Argox, Elgin...)</option>
               </select>
@@ -269,12 +269,12 @@
         <div class="hist-stat"><div class="hist-stat-val" id="hStatAtual">—</div><div class="hist-stat-lbl">Atual</div></div>
         <div class="hist-stat"><div class="hist-stat-val" id="hStatMin">—</div><div class="hist-stat-lbl">Mínimo</div></div>
         <div class="hist-stat"><div class="hist-stat-val" id="hStatMedio">—</div><div class="hist-stat-lbl">Médio</div></div>
-        <div class="hist-stat"><div class="hist-stat-val" id="hStatPrevisao" style="font-size:.9rem">—</div><div class="hist-stat-lbl">Previsão fim</div></div>
+        <div class="hist-stat"><div class="hist-stat-val text-sm" id="hStatPrevisao">—</div><div class="hist-stat-lbl">Previsão fim</div></div>
       </div>
       <div class="hist-chart-wrap">
         <canvas id="histChart"></canvas>
       </div>
-      <div style="font-size:.72rem;color:var(--text3);text-align:center" id="histEmpty" class="hidden">
+      <div class="empty-msg-sm hidden" id="histEmpty">
         Sem dados históricos suficientes para exibir o gráfico.
       </div>
     </div>
@@ -297,8 +297,8 @@
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label">Alertar quando nível estiver</label>
-            <div class="sel-wrap" style="width:100%">
-              <select class="sel form-select-field" id="nNivel" style="min-width:100%;padding:.5rem 1.7rem .5rem .75rem">
+            <div class="sel-wrap sel-wrap-full">
+              <select class="sel form-select-field sel-full" id="nNivel">
                 <option value="critico">🔴 Crítico (≤10%)</option>
                 <option value="baixo">🟠 Baixo (≤25%)</option>
                 <option value="medio">🟡 Médio (≤50%)</option>
@@ -307,8 +307,8 @@
           </div>
           <div class="form-group">
             <label class="form-label">Intervalo entre alertas</label>
-            <div class="sel-wrap" style="width:100%">
-              <select class="sel form-select-field" id="nIntervalo" style="min-width:100%;padding:.5rem 1.7rem .5rem .75rem">
+            <div class="sel-wrap sel-wrap-full">
+              <select class="sel form-select-field sel-full" id="nIntervalo">
                 <option value="1">1 hora</option>
                 <option value="2">2 horas</option>
                 <option value="4" selected>4 horas</option>
@@ -350,12 +350,12 @@
               <input class="form-input" id="nDestinos" placeholder="ti@empresa.com, gerente@empresa.com">
             </div>
           </div>
-          <div style="display:flex;gap:.5rem;margin-top:.5rem">
-            <div class="toggle-wrap" style="margin:0">
+          <div class="flex-row-gap">
+            <div class="toggle-wrap no-margin">
               <label class="toggle"><input type="checkbox" id="nTls" checked><span class="toggle-slider"></span></label>
-              <span class="toggle-label" style="font-size:.78rem">Usar TLS (STARTTLS)</span>
+              <span class="toggle-label toggle-label-sm">Usar TLS (STARTTLS)</span>
             </div>
-            <button class="btn btn-ghost" id="btnTestarEmail" style="margin-left:auto;font-size:.75rem">
+            <button class="btn btn-ghost btn-inline-sm" id="btnTestarEmail">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
               Testar
             </button>
@@ -373,8 +373,8 @@
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label">Tipo</label>
-            <div class="sel-wrap" style="width:100%">
-              <select class="sel form-select-field" id="nWebhookTipo" style="min-width:100%;padding:.5rem 1.7rem .5rem .75rem">
+            <div class="sel-wrap sel-wrap-full">
+              <select class="sel form-select-field sel-full" id="nWebhookTipo">
                 <option value="teams">Microsoft Teams</option>
                 <option value="slack">Slack</option>
                 <option value="generic">Genérico (JSON)</option>
@@ -386,8 +386,8 @@
             <input class="form-input" id="nWebhookUrl" placeholder="https://...">
           </div>
         </div>
-        <div style="display:flex;justify-content:flex-end;margin-top:.4rem">
-          <button class="btn btn-ghost" id="btnTestarWebhook" style="font-size:.75rem">
+        <div class="flex-end-row">
+          <button class="btn btn-ghost btn-sm" id="btnTestarWebhook">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             Testar Webhook
           </button>

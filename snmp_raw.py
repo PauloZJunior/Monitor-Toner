@@ -176,10 +176,14 @@ def _send_snmp(ip, packet, timeout, port):
     except Exception:
         return None
 
-def snmp_get(ip, community, oid, timeout=2, port=161, retries=3):
+def snmp_get(ip, community, oid, timeout=2, port=161, retries=2):
     """
     Faz SNMP GET via UDP puro.
     Tenta algumas vezes antes de retornar None.
+    (retries=2: o próprio ciclo de atualização automática do painel já
+    re-consulta a impressora no próximo refresh, então não vale a pena
+    insistir muito aqui — cada tentativa extra pode custar alguns segundos
+    numa impressora realmente offline.)
     """
 
     for tentativa in range(retries):
@@ -232,41 +236,6 @@ def snmp_get(ip, community, oid, timeout=2, port=161, retries=3):
             return val
 
     return None
-
-##def snmp_get(ip, community, oid, timeout=2, port=161):
-    """
-    Faz SNMP GET via UDP puro.
-    Na primeira consulta a um IP, testa v2c e v1 e memoriza qual funciona.
-    Nas consultas seguintes usa direto a versão que já funcionou — sem overhead.
-    """
-    cached = _snmp_version_cache.get(ip)
-
-    if cached == 1:
-        # Já sabemos que este IP usa v2c
-        return _send_snmp(ip, _build_get_request(community, oid), timeout, port)
-
-    if cached == 0:
-        # Já sabemos que este IP usa v1
-        return _send_snmp(ip, _build_get_v1(community, oid), timeout, port)
-
-    # Primeira vez — descobre qual versão funciona (timeout reduzido para ser rápido)
-    pkt_v2c = _build_get_request(community, oid)
-    val = _send_snmp(ip, pkt_v2c, timeout, port)
-    if val is not None:
-        if len(_snmp_version_cache) >= _CACHE_MAX:
-            # Remove entrada mais antiga para liberar espaço
-            _snmp_version_cache.pop(next(iter(_snmp_version_cache)))
-        _snmp_version_cache[ip] = 1  # memoriza: este IP usa v2c
-        return val
-
-    pkt_v1 = _build_get_v1(community, oid)
-    val = _send_snmp(ip, pkt_v1, timeout, port)
-    if val is not None:
-        if len(_snmp_version_cache) >= _CACHE_MAX:
-            _snmp_version_cache.pop(next(iter(_snmp_version_cache)))
-        _snmp_version_cache[ip] = 0  # memoriza: este IP usa v1
-    return val
-##
 
 def snmp_get_int(ip, community, oid, timeout=3):
     val = snmp_get(ip, community, oid, timeout)

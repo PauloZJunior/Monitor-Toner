@@ -2,7 +2,7 @@
 routes/api.py — Endpoints de monitoramento
 Inclui: leitura de toner, tempo de resposta, histórico, notificações, despertar, exportar
 """
-import io, csv, time
+import io, csv, time, sys
 from flask import Blueprint, jsonify, Response, request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -80,8 +80,6 @@ def _testar_tcp(ip, portas=(9100, 515, 631, 80, 443, 8080), timeout=2):
 
     # Último recurso: SNMP UDP (porta 161) — muitas impressoras de etiqueta têm SNMP
     try:
-        from snmp_raw import snmp_get_str
-        from config import OID_SYS_NAME
         community = "public"
         val = snmp_get_str(ip, community, OID_SYS_NAME, timeout=timeout)
         if val and val not in ("noSuchObject", "noSuchInstance", ""):
@@ -255,7 +253,6 @@ def debug():
     Endpoint de diagnóstico — acessível apenas a partir do próprio servidor.
     Retorna 403 para acessos externos.
     """
-    import sys
     allowed = {"127.0.0.1", "::1", "localhost"}
     client_ip = request.remote_addr or ""
     if client_ip not in allowed:
@@ -264,7 +261,6 @@ def debug():
     resultado = {"status": "ok", "python": sys.version,
                  "db_ok": False, "impressoras_count": 0, "erros": []}
     try:
-        from database import listar_impressoras
         imps = listar_impressoras(apenas_ativas=False)
         resultado["db_ok"] = True
         resultado["impressoras_count"] = len(imps)
@@ -340,7 +336,6 @@ def exportar_csv():
     for imp in impressoras:
         hist = buscar_historico_resumido(imp["id"], limite=1)
         pct  = hist[0]["percentual"] if hist else None
-        print("HIST DEBUG:", hist)
         st   = hist[0].get("status", "desconhecido") if hist else "desconhecido"
         dados.append({**imp, "percentual": pct, "status": st,
                       "cor_status": cor_por_pct(pct) if pct is not None else "desconhecido"})

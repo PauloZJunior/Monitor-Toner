@@ -6,7 +6,7 @@ import logging
 from datetime import timedelta
 from flask import Flask, send_from_directory, make_response
 from flask_session import Session
-import redis
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config import SECRET_KEY, SESSION_LIFETIME_MINUTES
 from database import init_db, importar_json, limpar_historico_antigo
@@ -20,6 +20,11 @@ app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.secret_key = SECRET_KEY
 app.json.ensure_ascii = False
 app.permanent_session_lifetime = timedelta(minutes=SESSION_LIFETIME_MINUTES)
+
+# ─── Confia no proxy reverso (Traefik) para IP real do cliente ──────────────
+# Sem isso, request.remote_addr sempre mostra o IP do Traefik, quebrando o
+# rate limit de login (routes/auth.py) e a checagem de localhost (/api/debug).
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 # ─── Configurar Sessões (Filesystem) ─────────────────────────────────────────
 # Usar filesystem para evitar problemas de serialização com Redis
