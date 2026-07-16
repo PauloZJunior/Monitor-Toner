@@ -2,7 +2,7 @@
 routes/api.py — Endpoints de monitoramento
 Inclui: leitura de toner, tempo de resposta, histórico, notificações, despertar, exportar
 """
-import io, csv, time, sys
+import io, csv, time, sys, threading
 from flask import Blueprint, jsonify, Response, request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -22,6 +22,16 @@ from config import OID_SYS_NAME, OID_SERIAL, OID_MAC, SNMP_MAX_WORKERS
 import socket as _sock
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
+
+# ─── Cache curto do resultado da varredura SNMP ─────────────────────────────
+# O painel se auto-atualiza a cada 5 min (ver static/js/api.js), mas se
+# várias pessoas deixarem a aba aberta ao mesmo tempo, cada uma dispararia
+# sua própria varredura completa da rede, de forma independente. Com esse
+# cache, requisições que caem dentro do TTL reaproveitam o último resultado
+# em vez de re-consultar todas as impressoras via SNMP de novo.
+_CACHE_TTL_SEGUNDOS = 60
+_cache_lock = threading.Lock()
+_cache_impressoras = {"payload": None, "timestamp": 0}
 
 
 def _formatar_mac(raw):
@@ -270,6 +280,13 @@ def debug():
 
 @api_bp.route("/impressoras")
 def get_impressoras():
+    forcar = request.args.get("forcar") in ("1", "true", "yes")
+
+    if not forcar:
+        with _cache_lock:
+            if _cache_impressoras["payload"] and (time.time() - _cache_impressoras["timestamp"]) < _CACHE_TTL_SEGUNDOS:
+                return jsonify(_cache_impressoras["payload"])
+
     try:
         impressoras = listar_impressoras(apenas_ativas=True)
     except Exception as e:
@@ -284,7 +301,7 @@ def get_impressoras():
     t_vals  = [d["tempo_resposta"] for d in online if d.get("tempo_resposta")]
     t_medio = round(sum(t_vals) / len(t_vals)) if t_vals else 0
 
-    return jsonify({
+    payload = {
         "impressoras": dados,
         "resumo": {
             "total":          len(dados),
@@ -295,7 +312,13 @@ def get_impressoras():
             "tempo_medio_ms": t_medio,
         },
         "atualizado_em": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-    })
+    }
+
+    with _cache_lock:
+        _cache_impressoras["payload"]   = payload
+        _cache_impressoras["timestamp"] = time.time()
+
+    return jsonify(payload)
 
 
 @api_bp.route("/impressoras/<ip>/status")

@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (btnWake) btnWake.addEventListener('click', despertarTodas);
 
   const btnRefresh = document.getElementById('btnRefresh');
-  if (btnRefresh) btnRefresh.addEventListener('click', carregarDados);
+  if (btnRefresh) btnRefresh.addEventListener('click', () => carregarDados(true));
 
   const btnLogout = document.getElementById('btnLogout');
   if (btnLogout) btnLogout.addEventListener('click', fazerLogout);

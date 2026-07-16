@@ -28,7 +28,7 @@ async function despertarTodas() {
     document.getElementById('wtTotal').textContent      = data.total + ' impressora(s)';
     setTimeout(() => {
       document.getElementById('wtTitle').textContent = '🔄 Verificando...';
-      carregarDados();
+      carregarDados(true);
     }, 8000);
   } catch(e) {
     clearInterval(pt);

@@ -176,7 +176,7 @@ async function salvarImpressora() {
     if (!res.ok) { mostrarAlerta('danger', data.erro || 'Erro ao salvar'); return; }
     mostrarAlerta('success', id ? '✅ Impressora atualizada!' : '✅ Impressora cadastrada!');
     limparForm();
-    setTimeout(() => { mudarTab('lista'); carregarDados(); }, 1200);
+    setTimeout(() => { mudarTab('lista'); carregarDados(true); }, 1200);
   } catch(e) {
     mostrarAlerta('danger', `Erro: ${e.message}`);
   } finally {
@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mostrarAlerta('danger', '⚠️ Sessão expirada. Faça login novamente.');
         return;
       }
-      if (res.ok) { mostrarAlerta('success', '✅ Impressora removida!'); carregarLista(); carregarDados(); }
+      if (res.ok) { mostrarAlerta('success', '✅ Impressora removida!'); carregarLista(); carregarDados(true); }
       else         mostrarAlerta('danger', data.erro || 'Erro ao excluir');
     } catch(e) {
       mostrarAlerta('danger', `Erro: ${e.message}`);

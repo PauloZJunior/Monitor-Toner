@@ -1,10 +1,10 @@
 // api.js — Chamadas fetch para o servidor
 
-async function carregarDados() {
+async function carregarDados(forcar = false) {
   document.getElementById('btnRefresh').classList.add('loading');
   document.getElementById('loadingOverlay').classList.remove('hidden');
   try {
-    const res = await fetch('/api/impressoras');
+    const res = await fetch(forcar ? '/api/impressoras?forcar=1' : '/api/impressoras');
     if (!res.ok) {
       let msg = `HTTP ${res.status}`;
       try { const err = await res.json(); msg += ': ' + (err.erro || err.message || ''); } catch(_) {}
