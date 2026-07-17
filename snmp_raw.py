@@ -3,6 +3,7 @@ SNMP v1/v2c GET e WALK via UDP puro — sem dependencias externas
 """
 import socket
 import struct
+import threading
 
 
 def _encode_oid(oid_str):
@@ -146,6 +147,10 @@ def _parse_response(data):
 # Limitado a 500 entradas para evitar crescimento ilimitado de memória
 _snmp_version_cache: dict = {}
 _CACHE_MAX = 500
+# Protege o dict acima — snmp_get() é chamado de até SNMP_MAX_WORKERS threads
+# em paralelo (ver routes/api.py), então leitura+despejo+escrita precisam
+# ser atômicos ou duas threads podem colidir no pop() do mesmo instante.
+_cache_lock = threading.Lock()
 
 
 def _build_get_v1(community, oid_str, request_id=1):
@@ -167,11 +172,10 @@ def _build_get_v1(community, oid_str, request_id=1):
 def _send_snmp(ip, packet, timeout, port):
     """Envia pacote UDP e retorna resposta parseada ou None."""
     try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(timeout)
-        sock.sendto(packet, (ip, port))
-        response, _ = sock.recvfrom(4096)
-        sock.close()
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.settimeout(timeout)
+            sock.sendto(packet, (ip, port))
+            response, _ = sock.recvfrom(4096)
         return _parse_response(response)
     except Exception:
         return None
@@ -188,7 +192,8 @@ def snmp_get(ip, community, oid, timeout=2, port=161, retries=2):
 
     for tentativa in range(retries):
 
-        cached = _snmp_version_cache.get(ip)
+        with _cache_lock:
+            cached = _snmp_version_cache.get(ip)
 
         if cached == 1:
             val = _send_snmp(
@@ -218,10 +223,10 @@ def snmp_get(ip, community, oid, timeout=2, port=161, retries=2):
         val = _send_snmp(ip, pkt_v2c, timeout, port)
 
         if val is not None:
-            if len(_snmp_version_cache) >= _CACHE_MAX:
-                _snmp_version_cache.pop(next(iter(_snmp_version_cache)))
-
-            _snmp_version_cache[ip] = 1
+            with _cache_lock:
+                if len(_snmp_version_cache) >= _CACHE_MAX:
+                    _snmp_version_cache.pop(next(iter(_snmp_version_cache)))
+                _snmp_version_cache[ip] = 1
             return val
 
         pkt_v1 = _build_get_v1(community, oid)
@@ -229,10 +234,10 @@ def snmp_get(ip, community, oid, timeout=2, port=161, retries=2):
         val = _send_snmp(ip, pkt_v1, timeout, port)
 
         if val is not None:
-            if len(_snmp_version_cache) >= _CACHE_MAX:
-                _snmp_version_cache.pop(next(iter(_snmp_version_cache)))
-
-            _snmp_version_cache[ip] = 0
+            with _cache_lock:
+                if len(_snmp_version_cache) >= _CACHE_MAX:
+                    _snmp_version_cache.pop(next(iter(_snmp_version_cache)))
+                _snmp_version_cache[ip] = 0
             return val
 
     return None

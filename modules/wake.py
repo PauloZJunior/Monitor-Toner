@@ -16,11 +16,10 @@ def _despertar_udp_snmp(ip, community="public"):
         OID_PING = "1.3.6.1.2.1.1.5.0"
         for build_fn in [_build_get_request, _build_get_v1]:
             try:
-                pkt  = build_fn(community, OID_PING)
-                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                sock.settimeout(2)
-                sock.sendto(pkt, (ip, 161))
-                sock.close()
+                pkt = build_fn(community, OID_PING)
+                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+                    sock.settimeout(2)
+                    sock.sendto(pkt, (ip, 161))
             except Exception:
                 pass
         return True

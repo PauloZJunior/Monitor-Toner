@@ -4,12 +4,12 @@ app.py — Ponto de entrada do Monitor de Toner
 import os
 import logging
 from datetime import timedelta
-from flask import Flask, send_from_directory, make_response, jsonify, request
+from flask import Flask, send_from_directory, jsonify
 from flask_session import Session
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config import SECRET_KEY, SESSION_LIFETIME_MINUTES
-from database import init_db, importar_json, limpar_historico_antigo
+from database import init_db, importar_json, limpar_historico_antigo, listar_impressoras
 from routes.api          import api_bp
 from routes.crud         import crud_bp
 from routes.auth         import auth_bp
@@ -112,6 +112,21 @@ except Exception as e:
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
 
+@app.route("/healthz")
+def healthz():
+    """
+    Endpoint leve para o HEALTHCHECK do Docker/Traefik — não faz varredura
+    SNMP nenhuma, só confirma que o processo Flask está de pé e que o banco
+    SQLite responde.
+    """
+    try:
+        listar_impressoras(apenas_ativas=True)
+        return jsonify({"status": "ok"}), 200
+    except Exception as e:
+        logger.error(f"Healthcheck falhou: {e}")
+        return jsonify({"status": "erro", "detalhe": str(e)}), 503
+
+
 @app.route("/")
 def index():
     return send_from_directory(TEMPLATE_DIR, "index.html")
@@ -119,21 +134,13 @@ def index():
 
 @app.errorhandler(404)
 def not_found(e):
-    if request_wants_json():
-        return jsonify({"erro": "Rota não encontrada"}), 404
-    return send_from_directory(TEMPLATE_DIR, "index.html"), 404
+    return jsonify({"erro": "Rota não encontrada"}), 404
 
 
 @app.errorhandler(500)
 def server_error(e):
     logger.error(f"Erro interno: {e}")
     return jsonify({"erro": "Erro interno do servidor"}), 500
-
-
-def request_wants_json():
-    return request.path.startswith("/api") or request.path.startswith("/gerenciar") \
-        or request.path.startswith("/historico") or request.path.startswith("/notificacao") \
-        or request.path.startswith("/auth")
 
 
 if __name__ == "__main__":
